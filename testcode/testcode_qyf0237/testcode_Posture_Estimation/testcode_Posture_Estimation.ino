@@ -19,6 +19,7 @@ int offY = 0;
 int offZ = 0;
 
 
+
 //gyroよりコピー
 
 const int L3GD20_CS = SS;
@@ -64,11 +65,16 @@ byte L3GD20_read(byte reg)
 }
 
 
-
+int setupco = 0;
+float sumgx, sumgy, sumgz;
+int count = 0;
+long endtime;
 
 
 
 void setup() {
+  /*
+  
   digitalWrite(SS, HIGH);
   pinMode(SS, OUTPUT);
   
@@ -90,9 +96,10 @@ void setup() {
                          //   ||||+--- PD: 0: power down, 1: active
                          //   ||++---- BW1-BW0: cut off 12.5[Hz]
                          //   ++------ DR1-DR0: ODR 95[HZ]
- 
+ */
 
-  //地磁気から
+  //地磁気から 
+  
 
    Serial.begin(115200);
   while (!compass.begin())
@@ -114,13 +121,13 @@ void setup() {
         compass.setMeasurementMode(QMC5883_CONTINOUS); 
         compass.setDataRate(QMC5883_DATARATE_50HZ);
         compass.setSamples(QMC5883_SAMPLES_8);
-   }
-    delay(10);
+   }  
+    delay(10);  
 }
 
 
 
-void loop() {
+void loop() {/*
   int axpin = A2, aypin = A1, azpin = A0;
   int mX = analogRead(axpin);
   int mY = analogRead(aypin);
@@ -128,10 +135,11 @@ void loop() {
   //単位を重力加速度(補正済み)
   float ax = (3*(mX-511.5)/511.5+0.92)/(-0.42);
   float ay = (3*(mY-511.5)/511.5+0.93)/(-0.41);
-  float az = (3*(mZ-511.5)/511.5+0.94)/(-0.42);
+  float az = (3*(mZ-511.5)/511.5+0.94)/(-0.42);   
 
   short X, Y, Z;
-  float gx, gy, gz;//単位を°/s
+  
+  float gx, gy, gz; // 単位を°/s
   X = L3GD20_read(L3GD20_X_H);
   gx = X = (X << 8) | L3GD20_read(L3GD20_X_L);
   Y = L3GD20_read(L3GD20_Y_H);
@@ -143,10 +151,38 @@ void loop() {
   //x *= 0.0175;// +-500dps
   //x *= 0.07;  // +-2000dps
   gy *= 0.00875; // +-250dps
-  gz *= 0.00875; // +-250dps
+  gz *= 0.00875; // +-250dpsn
 
+  
+  if(setupco == 0){
+    endtime = millis() + 1000;
+    setupco = 1;
+  }else if(setupco == 1){
+    if(endtime >= millis()){
+      sumgx += gx;
+      sumgy += gy;
+      sumgz += gz;
+      count += 1;
+    }else{
+      sumgx = sumgx/count;
+      sumgy = sumgy/count;
+      sumgz = sumgz/count;
+      setupco = 2;
+      }
+  }else if(setupco == 2){
+    }
+ 
+  Serial.print(gx - sumgx);
+  Serial.print("\t");
+  Serial.print(gy - sumgy);
+  Serial.print("\t");
+  Serial.println(gz - sumgz);
+  
 
+}*/
 //地磁気から
+
+
 
   Vector mag = compass.readRaw();
 
@@ -195,9 +231,15 @@ void loop() {
   }
 
   // Convert to degrees
-  float headingDegrees = heading * 180/M_PI;
+  float headingDegrees = heading * 180/M_PI;  
 
-  MadgwickFilter.update(gx,gy,gz,ax,ay,az,mag.XAxis,mag.YAxis,headingDegrees);
+  Serial.println(heading);
+
+  
+}
+  /*
+
+  MadgwickFilter.update(gx-sumgx,gy-sumgy,gz-sumgz,ax,ay,az,mag.XAxis,mag.YAxis,headingDegrees);
   float roll = MadgwickFilter.getRoll();
   float pitch = MadgwickFilter.getPitch();
   float yaw = MadgwickFilter.getYaw();
@@ -210,4 +252,4 @@ void loop() {
   Serial.println(yaw);
 
   delay(10);
-}
+}*/
