@@ -73,7 +73,7 @@ long endtime;
 
 
 void setup() {
-  /*
+  
   
   digitalWrite(SS, HIGH);
   pinMode(SS, OUTPUT);
@@ -96,38 +96,35 @@ void setup() {
                          //   ||||+--- PD: 0: power down, 1: active
                          //   ||++---- BW1-BW0: cut off 12.5[Hz]
                          //   ++------ DR1-DR0: ODR 95[HZ]
- */
+ 
 
   //地磁気から 
   
-
-   Serial.begin(115200);
-  while (!compass.begin())
-  {
+ while (!compass.begin()){
     Serial.println("Could not find a valid QMC5883 sensor, check wiring!");
     delay(500);
   }
-
-    if(compass.isHMC()){
-        Serial.println("Initialize HMC5883");
-        compass.setRange(HMC5883L_RANGE_1_3GA);
-        compass.setMeasurementMode(HMC5883L_CONTINOUS);
-        compass.setDataRate(HMC5883L_DATARATE_15HZ);
-        compass.setSamples(HMC5883L_SAMPLES_8);
-    }
-   else if(compass.isQMC()){
-        Serial.println("Initialize QMC5883");
-        compass.setRange(QMC5883_RANGE_2GA);
-        compass.setMeasurementMode(QMC5883_CONTINOUS); 
-        compass.setDataRate(QMC5883_DATARATE_50HZ);
-        compass.setSamples(QMC5883_SAMPLES_8);
-   }  
+  if(compass.isHMC() ){
+    Serial.println("Initialize HMC5883");
+    compass.setRange(HMC5883L_RANGE_1_3GA);
+    compass.setMeasurementMode(HMC5883L_CONTINOUS);
+    compass.setDataRate(HMC5883L_DATARATE_15HZ);
+    compass.setSamples(HMC5883L_SAMPLES_8);
+  }else if(compass.isQMC()){
+    Serial.println("Initialize QMC5883");
+    compass.setRange(QMC5883_RANGE_2GA);
+    compass.setMeasurementMode(QMC5883_CONTINOUS); 
+    compass.setDataRate(QMC5883_DATARATE_50HZ);
+    compass.setSamples(QMC5883_SAMPLES_8);
+  }
     delay(10);  
 }
 
 
 
-void loop() {/*
+void loop() {
+  /*
+
   int axpin = A2, aypin = A1, azpin = A0;
   int mX = analogRead(axpin);
   int mY = analogRead(aypin);
@@ -170,86 +167,38 @@ void loop() {/*
       setupco = 2;
       }
   }else if(setupco == 2){
-    }
- 
+    }*/
+ /*
   Serial.print(gx - sumgx);
   Serial.print("\t");
   Serial.print(gy - sumgy);
   Serial.print("\t");
   Serial.println(gz - sumgz);
   
+*/
 
-}*/
 //地磁気から
 
 
 
   Vector mag = compass.readRaw();
+  Serial.print(XAxis);
+  Serial.print(YAxis);
+  Serial.print(ZAxis);
 
-  if(mag.XAxis>maxX){
-    maxX=mag.XAxis;
-  }
-  if(mag.YAxis>maxY){
-    maxY=mag.YAxis;
-  }
-
-  if(mag.XAxis<minX){
-    minX=mag.XAxis;
-  }
-  if(mag.YAxis<minY){
-    minY=mag.YAxis;
-  }
-  if(mag.ZAxis>maxZ){
-    maxZ=mag.ZAxis;
-  }
-  if(mag.ZAxis<minZ){
-    minZ=mag.ZAxis;
-  }
-  
-  
-
-  Vector norm = compass.readNormalize();
-  
-  // Calculate heading
-  float heading = atan2(norm.YAxis, norm.XAxis);
-
-  // Set declination angle on your location and fix heading
-  // You can find your declination on: http://magnetic-declination.com/
-  // (+) Positive or (-) for negative
-  // For Bytom / Poland declination angle is 4'26E (positive)
-  // Formula: (deg + (min / 60.0)) / (180 / M_PI);
-  float declinationAngle = (-7.0 + (47.0 / 60.0)) / (180 / PI);
-  heading += declinationAngle;
-
-  // Correct for heading < 0deg and heading > 360deg
-  if (heading < 0){
-    heading += 2 * PI;
-  }
-
-  if (heading > 2 * PI){
-    heading -= 2 * PI;
-  }
-
-  // Convert to degrees
-  float headingDegrees = heading * 180/M_PI;  
-
-  Serial.println(heading);
-
-  
 }
-  /*
+/*
+  MadgwickFilter.update(gx-sumgx,gy-sumgy,gz-sumgz,ax,ay,az,mag.XAxis,mag.YAxis,mag.ZAxis);
+  float roll = MadgwickFilter.getRollRadians();
+  float pitch = MadgwickFilter.getPitchRadians();
+  float yaw = MadgwickFilter.getYawRadians();
 
-  MadgwickFilter.update(gx-sumgx,gy-sumgy,gz-sumgz,ax,ay,az,mag.XAxis,mag.YAxis,headingDegrees);
-  float roll = MadgwickFilter.getRoll();
-  float pitch = MadgwickFilter.getPitch();
-  float yaw = MadgwickFilter.getYaw();
-
-  Serial.print("roll:");
-  Serial.println(roll);
-  Serial.print("pitch:");
-  Serial.println(pitch);
-  Serial.print("yaw:");
+  Serial.print("e,");
+  Serial.print(roll);
+  Serial.print(",");
+  Serial.print(pitch);
+  Serial.print(",");
   Serial.println(yaw);
 
   delay(10);
-}*/
+}  */
